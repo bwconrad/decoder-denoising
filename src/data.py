@@ -15,7 +15,8 @@ class SimpleDataModule(pl.LightningDataModule):
     def __init__(
         self,
         root: str,
-        size: int = 224,
+        size: int = 256,
+        crop: int = 224,
         num_val: int = 1000,
         batch_size: int = 32,
         workers: int = 4,
@@ -24,9 +25,9 @@ class SimpleDataModule(pl.LightningDataModule):
 
         Args:
             root: Path to image directory
-            resize_size: Size of resize transformation (0 = no resizing)
-            crop_size: Size of random crop transformation
-            n_val: Number of validation samples per scanner
+            size: Size of resized image
+            crop: Size of image crop
+            num_val: Number of validation samples
             batch_size: Number of batch samples
             workers: Number of data workers
         """
@@ -38,7 +39,8 @@ class SimpleDataModule(pl.LightningDataModule):
 
         self.transforms = Compose(
             [
-                RandomCrop(size),
+                Resize(size),
+                RandomCrop(crop),
                 RandomHorizontalFlip(),
                 ToTensor(),
                 Lambda(lambda t: (t * 2) - 1),  # Scale to [-1, 1]
@@ -54,9 +56,6 @@ class SimpleDataModule(pl.LightningDataModule):
                 [len(dataset) - self.num_val, self.num_val],
                 generator=torch.Generator().manual_seed(42),
             )
-
-        elif stage == "test":
-            raise NotImplementedError("")
 
     def train_dataloader(self):
         return DataLoader(
@@ -77,9 +76,6 @@ class SimpleDataModule(pl.LightningDataModule):
             pin_memory=True,
             drop_last=False,
         )
-
-    def test_dataloader(self):
-        raise NotImplementedError("")
 
 
 class SimpleDataset(data.Dataset):
@@ -106,28 +102,3 @@ class SimpleDataset(data.Dataset):
 
     def __len__(self):
         return len(self.paths)
-
-
-if __name__ == "__main__":
-    transforms = Compose(
-        [
-            RandomCrop(224),
-            RandomHorizontalFlip(),
-            ToTensor(),
-            Lambda(lambda t: (t * 2) - 1),  # Scale to [-1, 1]
-        ]
-    )
-
-    d = SimpleDataset("data", transforms)
-
-    dl = DataLoader(
-        d,
-        batch_size=16,
-        shuffle=True,
-        num_workers=4,
-        pin_memory=True,
-        drop_last=True,
-    )
-    for b in dl:
-        print(b.size())
-        break
