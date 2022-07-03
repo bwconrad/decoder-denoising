@@ -3,7 +3,6 @@ import math
 import pytorch_lightning as pl
 import segmentation_models_pytorch as smp
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -21,12 +20,21 @@ class DecoderDenoisingModel(pl.LightningModule):
         noise_type: str = "scaled",
         noise_std: float = 0.22,
         loss_type: str = "l2",
-        no_channel_last: bool = False,
+        channel_last: bool = False,
     ):
         """Decoder Denoising Pretraining Model
 
         Args:
             lr: Learning rate
+            betas: Adam beta parameters
+            arch: Segmentation model architecture
+            encoder: Segmentation model encoder architecture
+            in_channels: Number of channels of input image
+            mode: Denoising pretraining mode (encoder | encoder+decoder)
+            noise_type: Type of noising process (scaled | simple)
+            noise_std: Standard deviation/magnitude of gaussian noise
+            loss_type: Loss function type (l1 | l2 | huber)
+            channel_last: Change to channel last memory format for possible training speed up
         """
         super().__init__()
         self.save_hyperparameters()
@@ -34,7 +42,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         self.betas = betas
         self.noise_type = noise_type
         self.noise_std = noise_std
-        self.no_channel_last = no_channel_last
+        self.channel_last = channel_last
 
         # Initialize loss function
         self.loss_fn = self.get_loss_fn(loss_type)
@@ -53,9 +61,14 @@ class DecoderDenoisingModel(pl.LightningModule):
             for child in self.net.encoder.children():
                 for param in child.parameters():
                     param.requires_grad = False
+        elif mode != "encoder+decoder":
+            raise ValueError(
+                f"{mode} is not an available training mode. Should be one of ['decoder', 'encoder+decoder']"
+            )
 
-        # Change to channel last tensors
-        if not self.no_channel_last:
+        # Change to channel last memory format
+        # https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html
+        if self.channel_last:
             self = self.to(memory_format=torch.channels_last)
 
     @staticmethod
@@ -67,7 +80,9 @@ class DecoderDenoisingModel(pl.LightningModule):
         elif loss_type == "huber":
             return F.smooth_l1_loss
         else:
-            raise ValueError(f"{loss_type} is not an available loss function")
+            raise ValueError(
+                f"{loss_type} is not an available loss function. Should be one of ['l1', 'l2', 'huber']"
+            )
 
     @torch.no_grad()
     def add_noise(self, x):
@@ -78,16 +93,16 @@ class DecoderDenoisingModel(pl.LightningModule):
         if self.noise_type == "simple":
             x_noise = x + noise * self.noise_std
         elif self.noise_type == "scaled":
-            x_noise = (1 / math.sqrt(1 + self.noise_std**2)) * (
-                x + noise * self.noise_std
-            )
+            x_noise = ((1 + self.noise_std**2) ** -0.5) * (x + noise * self.noise_std)
         else:
-            raise ValueError(f"'noise_type' must be one of ['simple', 'scaled']")
+            raise ValueError(
+                f"{self.noise_type} is not an available noise type. Should be one of ['simple', 'scaled']"
+            )
 
         return x_noise, noise
 
     def denoise_step(self, x, mode="train"):
-        if not self.no_channel_last:
+        if not self.channel_last:
             x = x.to(memory_format=torch.channels_last)
 
         # Add noise to x
