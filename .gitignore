@@ -1,7 +1,7 @@
 data/
 output/
 weights/
-*.txt
+notes.txt
 
 
 # Byte-compiled / optimized / DLL files
