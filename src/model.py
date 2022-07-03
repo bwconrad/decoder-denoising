@@ -102,7 +102,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         return x_noise, noise
 
     def denoise_step(self, x, mode="train"):
-        if not self.channel_last:
+        if self.channel_last:
             x = x.to(memory_format=torch.channels_last)
 
         # Add noise to x

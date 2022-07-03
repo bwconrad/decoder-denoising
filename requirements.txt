@@ -5,3 +5,4 @@ scipy==1.7.3
 segmentation_models_pytorch==0.2.1
 torch==1.12.0
 torchvision==0.13.0
+jsonargparse[signatures]
