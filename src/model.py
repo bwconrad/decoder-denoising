@@ -1,5 +1,3 @@
-import math
-
 import pytorch_lightning as pl
 import segmentation_models_pytorch as smp
 import torch
@@ -15,7 +13,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         optimizer: str = "adamw",
         betas: tuple[float, float] = (0.9, 0.999),
         weight_decay: float = 0,
-        momentum: 0.9, 
+        momentum: float = 0.9,
         arch: str = "unet",
         encoder: str = "resnet18",
         in_channels: int = 3,
@@ -67,7 +65,7 @@ class DecoderDenoisingModel(pl.LightningModule):
 
         # Freeze encoder when doing decoder only pretraining
         if mode == "decoder":
-            for child in self.net.encoder.children():
+            for child in self.net.encoder.children():  # type:ignore
                 for param in child.parameters():
                     param.requires_grad = False
         elif mode != "encoder+decoder":
@@ -129,7 +127,11 @@ class DecoderDenoisingModel(pl.LightningModule):
         return loss
 
     def training_step(self, x, _):
-        self.log("lr", self.trainer.optimizers[0].param_groups[0]["lr"], prog_bar=True)
+        self.log(
+            "lr",
+            self.trainer.optimizers[0].param_groups[0]["lr"],  # type:ignore
+            prog_bar=True,
+        )
         return self.denoise_step(x, mode="train")
 
     def validation_step(self, x, _):
@@ -137,19 +139,32 @@ class DecoderDenoisingModel(pl.LightningModule):
 
     def configure_optimizers(self):
         if self.optimizer == "adam":
-            optimizer = Adam(self.net.parameters(), lr=self.lr, betas=self.betas, weight_decay=self.weight_decay)
+            optimizer = Adam(
+                self.net.parameters(),
+                lr=self.lr,
+                betas=self.betas,
+                weight_decay=self.weight_decay,
+            )
         elif self.optimizer == "adamw":
-            optimizer = AdamW(self.net.parameters(), lr=self.lr, betas=self.betas, weight_decay=self.weight_decay)
+            optimizer = AdamW(
+                self.net.parameters(),
+                lr=self.lr,
+                betas=self.betas,
+                weight_decay=self.weight_decay,
+            )
         elif self.optimizer == "sgd":
             optimizer = SGD(
-                self.net.parameters(), lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay
+                self.net.parameters(),
+                lr=self.lr,
+                momentum=self.momentum,
+                weight_decay=self.weight_decay,
             )
         else:
             raise ValueError(
                 f"{self.optimizer} is not an available optimizer. Should be one of ['adam', 'adamw', 'sgd']"
             )
         scheduler = CosineAnnealingLR(
-            optimizer, T_max=self.trainer.estimated_stepping_batches
+            optimizer, T_max=self.trainer.estimated_stepping_batches  # type:ignore
         )
 
         return {
