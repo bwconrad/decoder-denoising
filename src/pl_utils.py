@@ -40,7 +40,7 @@ def init_logger(args: dict) -> LightningLoggerBase:  # type:ignore
         args: parsed argument dictionary
 
     Returns:
-        logger: intialized logger object
+        logger: initialized logger object
     """
     if args["logger_type"] == "wandb":
         return WandbLogger(
@@ -48,11 +48,11 @@ def init_logger(args: dict) -> LightningLoggerBase:  # type:ignore
             name=args["name"],
             save_dir=args["save_path"],
         )
-    elif args["logger"] == "tensorboard":
+    elif args["logger_type"] == "tensorboard":
         return TensorBoardLogger(name=args["name"], save_dir=args["save_path"])
-    elif args["logger"] == "csv":
+    elif args["logger_type"] == "csv":
         return CSVLogger(name=args["name"], save_dir=args["save_path"])
     else:
         ValueError(
-            f"{args['logger']} is not an available logger. Should be one of ['cvs', 'wandb', 'tensorboard']"
+            f"{args['logger_type']} is not an available logger. Should be one of ['cvs', 'wandb', 'tensorboard']"
         )

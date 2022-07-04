@@ -13,6 +13,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         self,
         lr: float = 1e-4,
         betas: tuple[float, float] = (0.9, 0.999),
+        weight_decay: float = 0,
         arch: str = "unet",
         encoder: str = "resnet18",
         in_channels: int = 3,
@@ -27,6 +28,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         Args:
             lr: Learning rate
             betas: Adam beta parameters
+            weight_decay: Optimizer weight decay
             arch: Segmentation model architecture
             encoder: Segmentation model encoder architecture
             in_channels: Number of channels of input image
@@ -40,6 +42,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         self.save_hyperparameters()
         self.lr = lr
         self.betas = betas
+        self.weight_decay = weight_decay
         self.noise_type = noise_type
         self.noise_std = noise_std
         self.channel_last = channel_last
@@ -127,8 +130,20 @@ class DecoderDenoisingModel(pl.LightningModule):
         return self.denoise_step(x, mode="val")
 
     def configure_optimizers(self):
-        optimizer = Adam(self.net.parameters(), lr=self.lr, betas=self.betas)
+        optimizer = Adam(
+            self.net.parameters(),
+            lr=self.lr,
+            betas=self.betas,
+            weight_decay=self.weight_decay,
+        )
         scheduler = CosineAnnealingLR(
             optimizer, T_max=self.trainer.estimated_stepping_batches
         )
-        return [optimizer], [scheduler]
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+            },
+        }
