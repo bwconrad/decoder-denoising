@@ -11,7 +11,7 @@ PyTorch reimplementation of ["Decoder Denoising Pretraining for Semantic Segment
 - `pip install -r requirements`
 
 ### Usage
-To decoder pretrain a U-Net with a ResNet-50 encoder using the default settings run:
+To perform decoder denoising pretraining on a U-Net with a ResNet-50 encoder run:
 ```
 python train.py --gpus 1 --max_epochs 100 --data.root path/to/data/ --model.arch unet --model.encoder resnet50 
 ```
@@ -19,5 +19,5 @@ python train.py --gpus 1 --max_epochs 100 --data.root path/to/data/ --model.arch
 - `--model.arch` can be one of `unet, unetplusplus, manet, linknet, fpn, pspnet, deeplabv3, deeplabv3plus, pan`.
 - `--model.encoder` can be any from the list [here](https://smp.readthedocs.io/en/latest/encoders.html).
 - `configs/` contains example configuration files which can be run with `python train.py --config path/to/config`.
-- Run `python train.py --help` for a list and description for all options.
+- Run `python train.py --help` to get descriptions for all the options.
 
