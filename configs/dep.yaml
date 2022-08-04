@@ -1,0 +1,27 @@
+name: dep
+gpus: 1
+max_epochs: 100
+precision: 16
+data:
+  root: path/to/data/
+  size: 256
+  crop: 224
+  num_val: 1000
+  batch_size: 256
+  workers: 8
+model:
+  lr: 0.0001
+  optimizer: adam
+  betas:
+  - 0.9
+  - 0.999
+  weight_decay: 0.0
+  momentum: 0.9
+  arch: unet
+  encoder: resnet50
+  in_channels: 3
+  mode: encoder+decoder
+  noise_type: scaled
+  noise_std: 0.22
+  loss_type: l2
+  channel_last: true

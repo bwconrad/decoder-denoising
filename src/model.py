@@ -10,7 +10,7 @@ class DecoderDenoisingModel(pl.LightningModule):
     def __init__(
         self,
         lr: float = 1e-4,
-        optimizer: str = "adamw",
+        optimizer: str = "adam",
         betas: tuple[float, float] = (0.9, 0.999),
         weight_decay: float = 0,
         momentum: float = 0.9,
@@ -163,6 +163,7 @@ class DecoderDenoisingModel(pl.LightningModule):
             raise ValueError(
                 f"{self.optimizer} is not an available optimizer. Should be one of ['adam', 'adamw', 'sgd']"
             )
+
         scheduler = CosineAnnealingLR(
             optimizer, T_max=self.trainer.estimated_stepping_batches  # type:ignore
         )
