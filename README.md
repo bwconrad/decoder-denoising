@@ -17,7 +17,7 @@ python train.py --gpus 1 --max_epochs 100 --data.root path/to/data/ --model.arch
 ```
 
 - `--model.arch` can be one of `unet, unetplusplus, manet, linknet, fpn, pspnet, deeplabv3, deeplabv3plus, pan`.
-- `--model.encoder` can be any from the list [here](https://github.com/qubvel/segmentation_models.pytorch#encoders).
+- `--model.encoder` can be any from the list [here](https://smp.readthedocs.io/en/latest/encoders.html).
 - `configs/` contains example configuration files which can be run with `python train.py --config path/to/config`.
 - Run `python train.py --help` for a list and description for all options.
 
