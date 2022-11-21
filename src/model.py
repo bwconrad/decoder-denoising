@@ -12,7 +12,7 @@ class DecoderDenoisingModel(pl.LightningModule):
         lr: float = 1e-4,
         optimizer: str = "adam",
         betas: tuple[float, float] = (0.9, 0.999),
-        weight_decay: float = 0,
+        weight_decay: float = 0.0,
         momentum: float = 0.9,
         arch: str = "unet",
         encoder: str = "resnet18",
