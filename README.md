@@ -21,3 +21,13 @@ python train.py --gpus 1 --max_epochs 100 --data.root path/to/data/ --model.arch
 - `configs/` contains example configuration files which can be run with `python train.py --config path/to/config`.
 - Run `python train.py --help` to get descriptions for all the options.
 
+### Citation
+```bibtex
+@inproceedings{brempong2022denoising,
+  title={Denoising Pretraining for Semantic Segmentation},
+  author={Brempong, Emmanuel Asiedu and Kornblith, Simon and Chen, Ting and Parmar, Niki and Minderer, Matthias and Norouzi, Mohammad},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={4175--4186},
+  year={2022}
+}
+```
