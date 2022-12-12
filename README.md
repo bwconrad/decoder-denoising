@@ -6,11 +6,11 @@ PyTorch reimplementation of ["Decoder Denoising Pretraining for Semantic Segment
 <img src="assets/figure.png" width="50%" style={text-align: center;}/>
 </p>
 
-### Requirements
+## Requirements
 - Python 3.8+
 - `pip install -r requirements`
 
-### Usage
+## Usage
 To perform decoder denoising pretraining on a U-Net with a ResNet-50 encoder run:
 ```
 python train.py --gpus 1 --max_epochs 100 --data.root path/to/data/ --model.arch unet --model.encoder resnet50 
@@ -21,7 +21,35 @@ python train.py --gpus 1 --max_epochs 100 --data.root path/to/data/ --model.arch
 - `configs/` contains example configuration files which can be run with `python train.py --config path/to/config`.
 - Run `python train.py --help` to get descriptions for all the options.
 
-### Citation
+### Using a Pretrained Model
+Model weights can be extracted from a pretraining checkpoint file by running:
+```
+python scripts/extract_model_weights.py -c path/to/checkpoint/file
+```
+You can then initialize a segmentation model with these weights with the following (example for U-Net with ResNet-50 encoder):
+```python
+import segmentation_models_pytorch as smp
+import torch
+import torch.nn as nn
+
+weights = torch.load("weights.pt")
+
+model = smp.create_model(
+    "unet",
+    encoder_name="resnet18",
+    in_channels=3,
+    classes=3, # Same number used during pretraining for now
+    encoder_weights=None,
+)
+
+model.load_state_dict(weights, strict=True)
+
+# Replace segmentation head for fine-tuning
+in_channels = model.segmentation_head[0].in_channels
+model.segmentation_head[0] = nn.Conv2d(in_channels, num_classes, kernel_size=3, padding=1)
+```
+
+## Citation
 ```bibtex
 @inproceedings{brempong2022denoising,
   title={Denoising Pretraining for Semantic Segmentation},
