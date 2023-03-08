@@ -36,7 +36,7 @@ weights = torch.load("weights.pt")
 
 model = smp.create_model(
     "unet",
-    encoder_name="resnet18",
+    encoder_name="resnet50",
     in_channels=3,
     classes=3, # Same number used during pretraining for now
     encoder_weights=None,
@@ -46,6 +46,7 @@ model.load_state_dict(weights, strict=True)
 
 # Replace segmentation head for fine-tuning
 in_channels = model.segmentation_head[0].in_channels
+num_classes = 10
 model.segmentation_head[0] = nn.Conv2d(in_channels, num_classes, kernel_size=3, padding=1)
 ```
 
